@@ -237,4 +237,5 @@ def show_result_pyplot(model,
         wait_time=wait_time,
         win_name=title,
         bbox_color=(72, 101, 241),
-        text_color=(72, 101, 241))
+        text_color=(72, 101, 241)
+        )

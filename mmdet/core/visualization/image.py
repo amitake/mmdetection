@@ -126,34 +126,53 @@ def imshow_det_bboxes(img,
     polygons = []
     color = []
     for i, (bbox, label) in enumerate(zip(bboxes, labels)):
-        bbox_int = bbox.astype(np.int32)
-        poly = [[bbox_int[0], bbox_int[1]], [bbox_int[0], bbox_int[3]],
-                [bbox_int[2], bbox_int[3]], [bbox_int[2], bbox_int[1]]]
-        np_poly = np.array(poly).reshape((4, 2))
-        polygons.append(Polygon(np_poly))
-        color.append(bbox_color)
         label_text = class_names[
             label] if class_names is not None else f'class {label}'
         if len(bbox) > 4:
-            label_text += f'|{bbox[-1]:.02f}'
-        ax.text(
-            bbox_int[0],
-            bbox_int[1],
-            f'{label_text}',
-            bbox={
-                'facecolor': 'black',
-                'alpha': 0.8,
-                'pad': 0.7,
-                'edgecolor': 'none'
-            },
-            color=text_color,
-            fontsize=font_size,
-            verticalalignment='top',
-            horizontalalignment='left')
-        if segms is not None:
-            color_mask = mask_colors[labels[i]]
-            mask = segms[i].astype(bool)
-            img[mask] = img[mask] * 0.5 + color_mask * 0.5
+            #正答率をラベルの横に表示する
+            # label_text += f'|{bbox[-1]:.02f}'
+            #personに絞っているので正答率表示に変更する
+            label_text += f'|{i}|{bbox[-1]:.02f}'
+        # print(label_text)
+        if 'person' in label_text:
+            bbox_int = bbox.astype(np.int32)
+            #四角の真ん中の下の座標
+            # x_md = bbox_int[0]+(bbox_int[2] - bbox_int[0])/2
+            y_md = bbox_int[3]
+            if  830811/5105 <= y_md <= 1399887/5333:
+                if len(bbox) > 4:
+                    #正答率をラベルの横に表示する
+                    # label_text += f'|{bbox[-1]:.02f}'
+                    #personに絞っているので正答率表示に変更する
+                    label_text = f'{i}|{bbox[-1]:.02f}'
+                with open('/content/Drive/MyDrive/Colab Notebooks/mm/output.csv', 'a') as f:
+                    print(i,file=f)
+                #bbox_int0~3までの順番は左のx座標、上のy座標、右のx座標、下のy座標
+                poly = [[bbox_int[0], bbox_int[1]], [bbox_int[0], bbox_int[3]],
+                        [bbox_int[2], bbox_int[3]], [bbox_int[2], bbox_int[1]]]
+                np_poly = np.array(poly).reshape((4, 2))
+                polygons.append(Polygon(np_poly))
+                color.append(bbox_color)
+                
+                # ax.text(
+                #     bbox_int[0],
+                #     bbox_int[1],
+                #     f'{label_text}',
+                #     bbox={
+                #         'facecolor': 'black',
+                #         'alpha': 0.8,
+                #         'pad': 0.7,
+                #         'edgecolor': 'none'
+                #     },
+                #     color=text_color,
+                #     fontsize=font_size,
+                #     verticalalignment='top',
+                #     horizontalalignment='left')
+                #色塗り
+                if segms is not None:
+                    color_mask = mask_colors[labels[i]]
+                    mask = segms[i].astype(bool)
+                    img[mask] = img[mask] * 0.5 + color_mask * 0.5
 
     plt.imshow(img)
 
@@ -183,8 +202,7 @@ def imshow_det_bboxes(img,
 
     plt.close()
 
-    return img
-
+    return img, label_text
 
 def imshow_gt_det_bboxes(img,
                          annotation,
